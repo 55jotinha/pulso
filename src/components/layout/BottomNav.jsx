@@ -43,7 +43,7 @@ export const BottomNav = () => {
   ];
 
   return (
-    <div className="absolute bottom-2 left-0 right-0 px-3.5 pointer-events-none z-30">
+    <div className="absolute bottom-[max(8px,env(safe-area-inset-bottom))] left-0 right-0 px-3.5 pointer-events-none z-30">
       <nav className={`pointer-events-auto bg-white/95 backdrop-blur-md rounded-full px-3 shadow-[0_10px_30px_rgba(27,42,74,0.14)] border border-white/80 flex items-center justify-between ${ICON_TOKENS.navBarHeight}`}>
         <div className="flex items-center space-x-1 sm:space-x-1.5 flex-1 justify-around">
           {navItems.map((item) => {

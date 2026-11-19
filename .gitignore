@@ -13,6 +13,7 @@ node_modules/
 # Production build
 dist/
 dist-ssr/
+dev-dist/
 
 # Environment
 .env
@@ -33,3 +34,4 @@ dist-ssr/
 
 # Temporary test screenshots
 screenshots/
+

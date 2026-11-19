@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initialMockData } from '../data/mock';
 
 const AppContext = createContext();
@@ -26,6 +26,93 @@ export const AppProvider = ({ children }) => {
   // Modais de Consentimento e Feedback de Envio
   const [isConsentOpen, setIsConsentOpen] = useState(false);
   const [sentSuccessModal, setSentSuccessModal] = useState(false);
+
+  // Modo Apresentação em Celular Real / Standalone
+  const [isPresentationModalOpen, setIsPresentationModalOpen] = useState(false);
+
+  // Estados PWA
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+
+  useEffect(() => {
+    // Detectar modo standalone (já instalado como PWA)
+    const checkStandalone = () => {
+      const standaloneQuery = window.matchMedia('(display-mode: standalone)').matches;
+      const navStandalone = window.navigator.standalone === true;
+      return standaloneQuery || navStandalone;
+    };
+
+    const standaloneActive = checkStandalone();
+    setIsStandalone(standaloneActive);
+
+    // Capturar evento beforeinstallprompt (Android / Chrome)
+    const handleBeforeInstall = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+
+    window.addEventListener('appinstalled', () => {
+      setIsInstalledState();
+    });
+
+    const setIsInstalledState = () => {
+      setIsStandalone(true);
+      setIsInstallable(false);
+      setDeferredPrompt(null);
+      showToast('Pulso instalado com sucesso na sua tela de início!');
+    };
+
+    // Detectar iOS Safari (para dica única de instalação)
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
+    const isSafari = isIOSDevice && userAgent.includes('safari') && !userAgent.includes('crios') && !userAgent.includes('fxios');
+
+    if (isSafari && !standaloneActive) {
+      try {
+        const hintSeen = localStorage.getItem('pulso_ios_pwa_hint');
+        if (!hintSeen) {
+          const timer = setTimeout(() => {
+            setShowIOSPrompt(true);
+          }, 2500);
+          return () => clearTimeout(timer);
+        }
+      } catch (err) {
+        console.warn('LocalStorage error:', err);
+      }
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    };
+  }, []);
+
+  // Disparar prompt de instalação no Android/Chrome
+  const triggerPWAInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsInstallable(false);
+      setIsStandalone(true);
+      showToast('Obrigado por instalar o Pulso!');
+    }
+    setDeferredPrompt(null);
+  };
+
+  // Dispensar dica do iOS e registrar em localStorage
+  const dismissIOSPrompt = () => {
+    setShowIOSPrompt(false);
+    try {
+      localStorage.setItem('pulso_ios_pwa_hint', 'true');
+    } catch (err) {
+      console.warn('LocalStorage error:', err);
+    }
+  };
 
   const showToast = (message) => {
     setToastMessage(message);
@@ -324,6 +411,13 @@ export const AppProvider = ({ children }) => {
         setIsConsentOpen,
         sentSuccessModal,
         setSentSuccessModal,
+        isPresentationModalOpen,
+        setIsPresentationModalOpen,
+        isInstallable,
+        isStandalone,
+        triggerPWAInstall,
+        showIOSPrompt,
+        dismissIOSPrompt,
         cycleCaregiverAlert,
         takeDose,
         snoozeDose,

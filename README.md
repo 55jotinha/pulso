@@ -72,3 +72,4 @@ http://localhost:5173
 
 ## 🖥️ Demonstração em Desktop
 No ambiente desktop, a aplicação é renderizada dentro de uma moldura de smartphone centralizada (393x852) com barra superior de controle (*SwitcherBar*) para alternar rapidamente entre os perfis e reiniciar os dados da demonstração.
+

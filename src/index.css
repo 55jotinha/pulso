@@ -3,11 +3,30 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    background-color: #E2E6F2;
+  html, body {
+    background-color: #EEF0FA;
     color: #1B2A4A;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    touch-action: manipulation;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
   }
+
+  button, a, input, select {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Utilitários de Safe Area para Celular Real e Standalone */
+.safe-top {
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
 }
 
 /* Custom scrollbar */

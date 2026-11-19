@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from './context/AppContext';
 import { PhoneFrame } from './components/layout/PhoneFrame';
 import { SwitcherBar } from './components/presentation/SwitcherBar';
+import { PresentationFloatingButton } from './components/presentation/PresentationFloatingButton';
+import { PresentationModal } from './components/presentation/PresentationModal';
+import { IOSInstallPrompt } from './components/modals/IOSInstallPrompt';
 
 // Telas de Autenticação e Perfis
 import { ProfileSelectScreen } from './screens/auth/ProfileSelectScreen';
@@ -20,7 +23,19 @@ import { CaregiverScreen } from './screens/responsavel/CaregiverScreen';
 import { DoctorScreen } from './screens/medico/DoctorScreen';
 
 export const App = () => {
-  const { currentScreen } = useApp();
+  const { currentScreen, isStandalone } = useApp();
+  const [isNarrowScreen, setIsNarrowScreen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsNarrowScreen(window.innerWidth < 500);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isRealMobile = isNarrowScreen || isStandalone;
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -50,18 +65,35 @@ export const App = () => {
   };
 
   return (
-    <div className="h-screen max-h-screen overflow-hidden bg-[#E2E6F2] p-1 sm:p-3 flex flex-col items-center justify-between font-sans antialiased text-slate-800">
-      {/* Barra de controle acadêmico superior (desktop) */}
-      <div className="w-full shrink-0 mb-1.5 hidden sm:block">
-        <SwitcherBar />
-      </div>
+    <div
+      className={`h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col items-center justify-between font-sans antialiased text-slate-800 ${
+        isRealMobile
+          ? 'bg-[#EEF0FA] p-0'
+          : 'bg-[#E2E6F2] p-1 sm:p-3'
+      }`}
+    >
+      {/* Barra de controle acadêmico superior (apenas em desktop > 500px e não-standalone) */}
+      {!isRealMobile && (
+        <div className="w-full shrink-0 mb-1.5 hidden sm:block">
+          <SwitcherBar />
+        </div>
+      )}
 
-      {/* Moldura de Smartphone centralizada (ocupa a altura disponível da janela sem scroll da página) */}
+      {/* Conteúdo central (no desktop moldura 393x852; no celular real tela inteira) */}
       <main className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
         <PhoneFrame>
           {renderScreen()}
         </PhoneFrame>
       </main>
+
+      {/* Botão flutuante de modo apresentação (aparece apenas em celular real / standalone) */}
+      <PresentationFloatingButton />
+
+      {/* Modal de controle acadêmico e instalação PWA */}
+      <PresentationModal />
+
+      {/* Dica de instalação para iOS Safari */}
+      <IOSInstallPrompt />
     </div>
   );
 };

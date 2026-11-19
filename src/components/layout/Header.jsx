@@ -38,7 +38,7 @@ export const Header = ({ title, showBack = false, onBack, rightAction }) => {
   const Icon = config.icon;
 
   return (
-    <header className="px-5 pt-3 pb-2 flex items-center justify-between z-20 shrink-0 select-none">
+    <header className="px-5 pt-[max(12px,env(safe-area-inset-top))] pb-2 flex items-center justify-between z-20 shrink-0 select-none">
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         {showBack ? (
           <button
